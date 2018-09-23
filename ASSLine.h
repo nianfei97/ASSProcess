@@ -7,7 +7,7 @@
 
 class ASSLine
 {
-protected:
+private:
 	ASSTime start;
 	ASSTime end;
 	std::string text;
@@ -50,7 +50,7 @@ public:
 	ASSTime getDuration();
 
 	// Returns a string representation of the object
-	std::string printLine();
+	std::string printASSLine();
 
 	// Remove all tags from the object's text field
 	void removeAllTags();
@@ -59,7 +59,7 @@ public:
 	void removeNonKaraokeTags();
 };
 
-class ASSLineWithSwitch : ASSLine
+class ASSLineWithSwitch : public ASSLine
 {
 private:	
 	std::vector <ASSTime> switchDurations;
@@ -68,13 +68,17 @@ private:
 	ASSLineWithSwitch processSameStartTime (std::vector <ASSLine> &input);
 	ASSLineWithSwitch processSameEndTime (std::vector <ASSLine> &input);
 	ASSTime getAggregateDuration (int index);
+
 public:
 	// Constructors
 	ASSLineWithSwitch(ASSLine input);
 	ASSLineWithSwitch(std::vector <ASSLine> input);
 
+	// Operators
+	void operator=(ASSLineWithSwitch input);
+
 	// Returns a string representation of the object
-	std::string printLine();
+	std::string printASSLine();
 };
 
 #endif

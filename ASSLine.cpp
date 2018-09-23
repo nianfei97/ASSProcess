@@ -26,7 +26,7 @@ ASSLine::ASSLine()
 	this->isDialogue = false;
 }
 
-ASSLine::ASSLine(std::string input)
+ASSLine::ASSLine(std::string input) : ASSLine()
 {
 	std::istringstream iss(input);
 
@@ -172,7 +172,7 @@ ASSTime ASSLine::getDuration()
 	return this->end - this->start;
 }
 
-std::string ASSLine::printLine()
+std::string ASSLine::printASSLine()
 {
 	std::ostringstream sout;
 
@@ -198,6 +198,7 @@ std::string ASSLine::printLine()
 	}
 
 	sout << this->text;
+	sout << std::endl;
 
 	return sout.str();
 }
@@ -292,6 +293,13 @@ ASSLineWithSwitch::ASSLineWithSwitch(std::vector <ASSLine> input)
 	else throw "Unrecognised timing format!";
 }
 
+void ASSLineWithSwitch::operator=(ASSLineWithSwitch input)
+{
+	this->ASSLine::operator=(input);
+	this->switchDurations = input.switchDurations;
+	this->switchStyles = input.switchStyles;
+}
+
 ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime (std::vector <ASSLine> &input)
 {
 	ASSLineWithSwitch result = ASSLineWithSwitch(*input.rbegin());
@@ -332,7 +340,7 @@ ASSTime ASSLineWithSwitch::getAggregateDuration (int index)
 	return result;
 }
 
-std::string ASSLineWithSwitch::printLine()
+std::string ASSLineWithSwitch::printASSLine()
 {
 	std::ostringstream sout;
 
@@ -343,9 +351,7 @@ std::string ASSLineWithSwitch::printLine()
 		toPrint.setStyle(switchStyles[i]);
 		toPrint.setLayer(switchDurations.size() - i - 1);
 
-		sout << toPrint.printLine();
-
-		if (i < switchDurations.size() - 1) sout << std::endl;
+		sout << toPrint.printASSLine();
 	}
 
 	return sout.str();
