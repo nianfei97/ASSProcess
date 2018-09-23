@@ -16,7 +16,7 @@ protected:
 	std::string title;
 
 	ASSFile();
-	
+
 	// Converts all underscores in a std::string to spaces
 	std::string convertUnderscoreToSpace(std::string input);
 
@@ -34,8 +34,9 @@ public:
 class ASSFileWithSwitch : public ASSFile
 {
 private:
-	void processLyricLines(std::ifstream &fin);
 	std::vector <ASSLineWithSwitch> lines;
+
+	void processLyricLines(std::ifstream &fin);
 
 public:
 	ASSFileWithSwitch(std::string inFileName);

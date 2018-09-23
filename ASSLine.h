@@ -2,6 +2,7 @@
 #define __ASSLine__
 
 #include "ASSTime.h"
+#include "SwitchCodes.h"
 #include <string>
 #include <vector>
 
@@ -62,12 +63,11 @@ public:
 class ASSLineWithSwitch : public ASSLine
 {
 private:	
-	std::vector <ASSTime> switchDurations;
-	std::vector <std::string> switchStyles;
+	std::vector <StyleSwitchCode> StyleSwitchCodes;
 
 	ASSLineWithSwitch processSameStartTime (std::vector <ASSLine> &input);
 	ASSLineWithSwitch processSameEndTime (std::vector <ASSLine> &input);
-	ASSTime getAggregateDuration (int index);
+	ASSTime getAggregateSwitchDuration (int index);
 
 public:
 	// Constructors

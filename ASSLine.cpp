@@ -1,4 +1,6 @@
 #include "ASSLine.h"
+#include "SwitchCodes.h"
+
 #include <sstream>
 #include <iostream>
 
@@ -72,6 +74,7 @@ ASSLine::ASSLine(std::string input) : ASSLine()
 
 	std::string textString;
 	getline(iss, textString);
+	while (textString.back() == ' ') textString.pop_back();
 	this->text = textString;
 
 	this->isComment = false;
@@ -296,8 +299,7 @@ ASSLineWithSwitch::ASSLineWithSwitch(std::vector <ASSLine> input)
 void ASSLineWithSwitch::operator=(ASSLineWithSwitch input)
 {
 	this->ASSLine::operator=(input);
-	this->switchDurations = input.switchDurations;
-	this->switchStyles = input.switchStyles;
+	this->StyleSwitchCodes = input.StyleSwitchCodes;
 }
 
 ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime (std::vector <ASSLine> &input)
@@ -306,10 +308,17 @@ ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime (std::vector <ASSLine>
 
 	for (int i = 0; i < input.size(); i++)
 	{
-		if (i == 0) result.switchDurations.push_back(input[i].getDuration());
-		else if (i > 0) result.switchDurations.push_back(input[i].getDuration() - input[i - 1].getDuration());
+		ASSTime switchDuration;
+		std::string switchStyle;
 
-		result.switchStyles.push_back(input[i].getStyle());
+		if (i == 0) switchDuration = input[i].getDuration();
+		else if (i > 0) switchDuration = input[i].getDuration() - input[i - 1].getDuration();
+
+		switchStyle = input[i].getStyle();
+
+		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
+
+		result.StyleSwitchCodes.push_back(toPush);
 	}
 
 	return result;
@@ -321,21 +330,29 @@ ASSLineWithSwitch ASSLineWithSwitch::processSameEndTime (std::vector <ASSLine> &
 
 	for (int i = 0; i < input.size(); i++)
 	{
-		if (i < input.size() - 1) result.switchDurations.push_back(input[i].getDuration() - input[i + 1].getDuration());
-		else if (i == input.size() - 1) result.switchDurations.push_back(input[i].getDuration());
+		ASSTime switchDuration;
+		std::string switchStyle;
 
-		result.switchStyles.push_back(input[i].getStyle());
+
+		if (i < input.size() - 1) switchDuration = input[i].getDuration() - input[i + 1].getDuration();
+		else if (i == input.size() - 1) switchDuration = input[i].getDuration();
+		
+		switchStyle = input[i].getStyle();
+
+		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
+
+		result.StyleSwitchCodes.push_back(toPush);
 	}
 
 	return result;
 }
 
-ASSTime ASSLineWithSwitch::getAggregateDuration (int index)
+ASSTime ASSLineWithSwitch::getAggregateSwitchDuration (int index)
 {
 	ASSTime result;
 
 	for (int i = 0; i <= index; i++)
-		result += this->switchDurations[i];
+		result += this->StyleSwitchCodes[i].getDuration();
 
 	return result;
 }
@@ -344,12 +361,12 @@ std::string ASSLineWithSwitch::printASSLine()
 {
 	std::ostringstream sout;
 
-	for (int i = 0; i < switchDurations.size(); i++)
+	for (int i = 0; i < StyleSwitchCodes.size(); i++)
 	{
 		ASSLine toPrint = *this;
-		toPrint.setEnd(toPrint.getStart() + this->getAggregateDuration(i));
-		toPrint.setStyle(switchStyles[i]);
-		toPrint.setLayer(switchDurations.size() - i - 1);
+		toPrint.setEnd(toPrint.getStart() + this->getAggregateSwitchDuration(i));
+		toPrint.setStyle(this->StyleSwitchCodes[i].getStyle());
+		toPrint.setLayer(StyleSwitchCodes.size() - i - 1);
 
 		sout << toPrint.printASSLine();
 	}

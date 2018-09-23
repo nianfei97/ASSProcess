@@ -179,4 +179,3 @@ int ASSFileWithSwitch::getNumLines()
 {
 	return lines.size();
 }
-
