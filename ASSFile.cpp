@@ -1,32 +1,30 @@
 #include "ASSFile.h"
-
 #include <string>
 #include <vector>
 #include <fstream>
+
+#define PREPROCESS_STOP_READ_LINE "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
 
 ASSFile::ASSFile(std::string inFileName)
 {
 	std::ifstream fin(inFileName);
 
-	ASSFile::skipPreprocessLines(fin);
+	ASSFile::readPreprocessLines(fin);
 	ASSFile::processLyricLines(fin);
 
 	fin.close();
 }
 
-void ASSFile::skipPreprocessLines(std::ifstream &fin)
+void ASSFile::readPreprocessLines(std::ifstream &fin)
 {
 	std::string currLine;
 
 	while (1)
 	{
 		getline(fin, currLine);
+		this->preprocess.push_back(currLine);
 
-		if (currLine == "[Events]") 
-		{
-			getline(fin, currLine);
-			break;
-		}
+		if (currLine == PREPROCESS_STOP_READ_LINE) break;
 	}
 }
 

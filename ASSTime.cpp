@@ -1,5 +1,4 @@
 #include "ASSTime.h"
-
 #include <sstream>
 
 ASSTime::ASSTime()
@@ -94,6 +93,16 @@ ASSTime ASSTime::operator-(ASSTime toSubtract)
 void ASSTime::operator-=(ASSTime  toSubtract)
 {
 	*this = *this + toSubtract;
+}
+
+bool ASSTime::operator==(ASSTime toCompare)
+{
+	return this->hour == toCompare.hour && this->min == toCompare.min && this->sec == toCompare.sec && this->ms == toCompare.ms;
+}
+
+bool ASSTime::operator!=(ASSTime toCompare)
+{
+	return !(*this == toCompare);
 }
 
 void ASSTime::round()

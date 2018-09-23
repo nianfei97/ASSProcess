@@ -14,7 +14,7 @@ private:
 	std::string title;
 	int uniqueLines;
 
-	void skipPreprocessLines(std::ifstream &fin);
+	void readPreprocessLines(std::ifstream &fin);
 	void processLyricLines(std::ifstream &fin);
 
 public:
