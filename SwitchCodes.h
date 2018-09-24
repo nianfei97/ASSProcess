@@ -18,11 +18,18 @@ public:
 	std::string getStyle();
 };
 
-class KSwitchCode
+class KaraokeSwitchCode
 {
 private:
 	ASSTime duration;
 	std::string textFragment;
+
+public:
+	KaraokeSwitchCode();
+	KaraokeSwitchCode(ASSTime duration, std::string textFragment);
+
+	ASSTime getDuration();
+	std::string getTextFragment();
 };
 
 #endif

@@ -8,7 +8,7 @@
 
 class ASSLine
 {
-private:
+protected:
 	ASSTime start;
 	ASSTime end;
 	std::string text;
@@ -23,6 +23,9 @@ private:
 	bool isUp;
 	bool isDialogue;
 
+	std::string removeAllTags(std::string input);
+	std::string removeNonKaraokeTags(std::string input);
+
 public:
 	// Construtors
 	ASSLine();
@@ -33,19 +36,19 @@ public:
 	ASSLine operator+ (ASSLine toAdd);
 	void operator+= (ASSLine toAdd);
 
-	// Getters
-	ASSTime getStart();
-	ASSTime getEnd();
-	std::string getText();
-	std::string getStyle();
-	int getLayer();
-
 	// Setters
 	void setStart(ASSTime toSet);
 	void setEnd(ASSTime toSet);
 	void setText(std::string toSet);
 	void setStyle(std::string toSet);
 	void setLayer(int toSet);
+
+	// Getters
+	ASSTime getStart();
+	ASSTime getEnd();
+	std::string getText();
+	std::string getStyle();
+	int getLayer();
 
 	// Returns the duration of the object
 	ASSTime getDuration();
@@ -63,14 +66,18 @@ public:
 class ASSLineWithSwitch : public ASSLine
 {
 private:	
-	std::vector <StyleSwitchCode> StyleSwitchCodes;
+	std::vector <StyleSwitchCode> styleSwitchCodes;
+	std::vector <KaraokeSwitchCode> karaokeSwitchCodes;
 
 	ASSLineWithSwitch processSameStartTime (std::vector <ASSLine> &input);
 	ASSLineWithSwitch processSameEndTime (std::vector <ASSLine> &input);
 	ASSTime getAggregateSwitchDuration (int index);
+	std::vector <KaraokeSwitchCode> getKaraokeSwitchCodes (std::string input);
+	std::string printKaraokeLine();
 
 public:
 	// Constructors
+	ASSLineWithSwitch(std::string input);
 	ASSLineWithSwitch(ASSLine input);
 	ASSLineWithSwitch(std::vector <ASSLine> input);
 

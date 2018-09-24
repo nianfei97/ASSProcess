@@ -7,6 +7,9 @@
 #define ONETIME_ZERO_STRING "0:00:00.00"
 #define DEFAULT_STYLE "Default"
 
+#define KARAOKE_TAG_START "{\\k"
+#define KARAOKE_TAG_END "}"
+
 #define DEFAULT_TAG "{\\fad(200,200)\\be11}"
 #define UP_TAG "{\\fad(200,200)\\be11\\an8}"
 #define TITLE_TAG "{\\fad(200,200)\\be11\\an7}"
@@ -206,62 +209,87 @@ std::string ASSLine::printASSLine()
 	return sout.str();
 }
 
-void ASSLine::removeAllTags()
+std::string ASSLine::removeAllTags(std::string input)
 {
-	std::string result = "";
+	std::string output = "";
 	bool writeEnable = true;
 
-	for (int i = 0; i < this->text.size(); i++)
+	for (int i = 0; i < input.size(); i++)
 	{
-		if (this->text[i] == '{')
+		if (input[i] == '{')
 		{
 			writeEnable = false;
 			i++;
 		}
-		else if (this->text[i] == '}')
+		else if (input[i] == '}')
 		{
 			writeEnable = true;
 			i++;
 		}
 		
 		if (writeEnable)
-			result += this->text[i];
+			output += input[i];
 	}
 
-	this->text = result;
+	return output;
 }
 
-void ASSLine::removeNonKaraokeTags()
+void ASSLine::removeAllTags()
 {
-	std::string result = "";
+	this->text = removeAllTags(this->text);
+}
+
+std::string ASSLine::removeNonKaraokeTags(std::string input)
+{
+	std::string output = "";
 	bool writeEnable = true;
 
-	for (int i = 0; i < this->text.size(); i++)
+	for (int i = 0; i < input.size(); i++)
 	{
-		if (this->text[i] == '{')
+		if (input[i] == '{')
 		{
-			if (this->text[i + 2] != 'k' && this->text[i + 2] != 'K')
+			if (input[i + 2] != 'k' && input[i + 2] != 'K')
 			{
 				writeEnable = false;
 				i++;
 			}
 		}
-		else if (this->text[i] == '}' && !writeEnable)
+		else if (input[i] == '}' && !writeEnable)
 		{
 			writeEnable = true;
 			i++;
 		}
 		
 		if (writeEnable)
-			result += this->text[i];
+			output += input[i];
 	}
 
-	this->text = result;
+	return output;
+}
+
+void ASSLine::removeNonKaraokeTags()
+{
+	this->text = removeNonKaraokeTags(this->text);
+}
+
+ASSLineWithSwitch::ASSLineWithSwitch(std::string input) : ASSLine(input)
+{
+	StyleSwitchCode currStyleSwitchCode(this->getDuration(), this->getStyle());
+	this->styleSwitchCodes.push_back(currStyleSwitchCode);
+
+	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
+	this->text = removeAllTags(this->text);
 }
 
 ASSLineWithSwitch::ASSLineWithSwitch(ASSLine input)
 {
 	this->ASSLine::operator=(input);
+
+	StyleSwitchCode currStyleSwitchCode(this->getDuration(), this->getStyle());
+	this->styleSwitchCodes.push_back(currStyleSwitchCode);
+	
+	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
+	this->text = removeAllTags(this->text);
 }
 
 ASSLineWithSwitch::ASSLineWithSwitch(std::vector <ASSLine> input)
@@ -294,12 +322,16 @@ ASSLineWithSwitch::ASSLineWithSwitch(std::vector <ASSLine> input)
 		*this = result;
 	}
 	else throw "Unrecognised timing format!";
+
+	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
+	this->text = removeAllTags(this->text);
+
 }
 
 void ASSLineWithSwitch::operator=(ASSLineWithSwitch input)
 {
 	this->ASSLine::operator=(input);
-	this->StyleSwitchCodes = input.StyleSwitchCodes;
+	this->styleSwitchCodes = input.styleSwitchCodes;
 }
 
 ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime (std::vector <ASSLine> &input)
@@ -318,7 +350,7 @@ ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime (std::vector <ASSLine>
 
 		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
 
-		result.StyleSwitchCodes.push_back(toPush);
+		result.styleSwitchCodes.push_back(toPush);
 	}
 
 	return result;
@@ -333,7 +365,6 @@ ASSLineWithSwitch ASSLineWithSwitch::processSameEndTime (std::vector <ASSLine> &
 		ASSTime switchDuration;
 		std::string switchStyle;
 
-
 		if (i < input.size() - 1) switchDuration = input[i].getDuration() - input[i + 1].getDuration();
 		else if (i == input.size() - 1) switchDuration = input[i].getDuration();
 		
@@ -341,7 +372,7 @@ ASSLineWithSwitch ASSLineWithSwitch::processSameEndTime (std::vector <ASSLine> &
 
 		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
 
-		result.StyleSwitchCodes.push_back(toPush);
+		result.styleSwitchCodes.push_back(toPush);
 	}
 
 	return result;
@@ -352,7 +383,7 @@ ASSTime ASSLineWithSwitch::getAggregateSwitchDuration (int index)
 	ASSTime result;
 
 	for (int i = 0; i <= index; i++)
-		result += this->StyleSwitchCodes[i].getDuration();
+		result += this->styleSwitchCodes[i].getDuration();
 
 	return result;
 }
@@ -361,15 +392,69 @@ std::string ASSLineWithSwitch::printASSLine()
 {
 	std::ostringstream sout;
 
-	for (int i = 0; i < StyleSwitchCodes.size(); i++)
+	for (int i = 0; i < this->styleSwitchCodes.size(); i++)
 	{
 		ASSLine toPrint = *this;
 		toPrint.setEnd(toPrint.getStart() + this->getAggregateSwitchDuration(i));
-		toPrint.setStyle(this->StyleSwitchCodes[i].getStyle());
-		toPrint.setLayer(StyleSwitchCodes.size() - i - 1);
+		toPrint.setStyle(this->styleSwitchCodes[i].getStyle());
+		toPrint.setLayer(styleSwitchCodes.size() - i - 1);
+		toPrint.setText(this->printKaraokeLine());
 
 		sout << toPrint.printASSLine();
 	}
 
 	return sout.str();
+}
+
+//{\k34}Shi{\k27}ning {\k29}Road {\k15}ha{\k44}shi{\k32}ri{\k30}da{\k30}su {\k31}ko{\k27}no {\k30}ki{\k15}mo{\k78}chi
+
+std::vector <KaraokeSwitchCode> ASSLineWithSwitch::getKaraokeSwitchCodes (std::string input)
+{
+	std::vector <KaraokeSwitchCode> output;
+
+	std::istringstream iss(this->removeNonKaraokeTags(input));
+
+	while (!iss.eof())
+	{
+		char currChar = iss.get();
+
+		if (currChar == '{')
+		{
+			iss.get();
+			iss.get();
+
+			int currDurationInt;
+			iss >> currDurationInt;
+
+			ASSTime currDuration(currDurationInt);
+
+			iss.get();
+
+			char* currTextFragment;
+
+			iss.get(currTextFragment, input.size(), '{');
+
+			KaraokeSwitchCode currSwitchCode(currDuration, currTextFragment);
+			output.push_back(currSwitchCode);
+		}
+		else
+		{
+			throw "Karaoke Switch Code Error";
+		}
+	}
+
+	return output;
+}
+
+std::string ASSLineWithSwitch::printKaraokeLine()
+{
+	std::ostringstream output;
+
+	for (KaraokeSwitchCode currCode : this->karaokeSwitchCodes)
+	{
+		output << KARAOKE_TAG_START << currCode.getDuration().getDurationCS() << KARAOKE_TAG_END;
+		output << currCode.getTextFragment();
+	}
+
+	return output.str();
 }

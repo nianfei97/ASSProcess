@@ -9,7 +9,7 @@ private:
 	int hour;
 	int min;
 	int sec;
-	int ms;
+	int cs;
 
 	// Ensures each time field in the object is within bounds
 	void round();
@@ -18,6 +18,7 @@ public:
 	// Construtors
 	ASSTime();
 	ASSTime(std::string input);
+	ASSTime(int input);
 
 	// Operators
 	void operator=(ASSTime input);
@@ -31,6 +32,9 @@ public:
 
 	// Returns a string representation of the object
 	std::string printASSTime();
+
+	// Returns duration of the object in centiseconds
+	int getDurationCS();
 };
 
 #endif
