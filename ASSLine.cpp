@@ -13,6 +13,7 @@
 #define DEFAULT_TAG "{\\fad(200,200)\\be11}"
 #define UP_TAG "{\\fad(200,200)\\be11\\an8}"
 #define TITLE_TAG "{\\fad(200,200)\\be11\\an7}"
+#define DIALOGUE_TAG "{\\rAvenir Next LT Pro\\fs60}"
 
 ASSLine::ASSLine()
 {
@@ -199,7 +200,7 @@ std::string ASSLine::printASSLine()
 	{
 		if (this->isUp) sout << UP_TAG;
 		else if (this->style == "Title") sout << TITLE_TAG;
-		else if (this->isDialogue); // Do nothing
+		else if (this->isDialogue) sout << DIALOGUE_TAG;
 		else sout << DEFAULT_TAG;
 	}
 
@@ -284,9 +285,6 @@ ASSLineWithSwitch::ASSLineWithSwitch(std::string input) : ASSLine(input)
 ASSLineWithSwitch::ASSLineWithSwitch(ASSLine input)
 {
 	this->ASSLine::operator=(input);
-
-	StyleSwitchCode currStyleSwitchCode(this->getDuration(), this->getStyle());
-	this->styleSwitchCodes.push_back(currStyleSwitchCode);
 	
 	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
 	this->text = removeAllTags(this->text);
@@ -322,16 +320,13 @@ ASSLineWithSwitch::ASSLineWithSwitch(std::vector <ASSLine> input)
 		*this = result;
 	}
 	else throw "Unrecognised timing format!";
-
-	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
-	this->text = removeAllTags(this->text);
-
 }
 
 void ASSLineWithSwitch::operator=(ASSLineWithSwitch input)
 {
 	this->ASSLine::operator=(input);
 	this->styleSwitchCodes = input.styleSwitchCodes;
+	this->karaokeSwitchCodes = input.karaokeSwitchCodes;
 }
 
 ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime (std::vector <ASSLine> &input)
@@ -406,8 +401,6 @@ std::string ASSLineWithSwitch::printASSLine()
 	return sout.str();
 }
 
-//{\k34}Shi{\k27}ning {\k29}Road {\k15}ha{\k44}shi{\k32}ri{\k30}da{\k30}su {\k31}ko{\k27}no {\k30}ki{\k15}mo{\k78}chi
-
 std::vector <KaraokeSwitchCode> ASSLineWithSwitch::getKaraokeSwitchCodes (std::string input)
 {
 	std::vector <KaraokeSwitchCode> output;
@@ -437,10 +430,6 @@ std::vector <KaraokeSwitchCode> ASSLineWithSwitch::getKaraokeSwitchCodes (std::s
 			KaraokeSwitchCode currSwitchCode(currDuration, currTextFragment);
 			output.push_back(currSwitchCode);
 		}
-		else
-		{
-			throw "Karaoke Switch Code Error";
-		}
 	}
 
 	return output;
@@ -450,10 +439,17 @@ std::string ASSLineWithSwitch::printKaraokeLine()
 {
 	std::ostringstream output;
 
-	for (KaraokeSwitchCode currCode : this->karaokeSwitchCodes)
+	if (this->karaokeSwitchCodes.empty())
 	{
-		output << KARAOKE_TAG_START << currCode.getDuration().getDurationCS() << KARAOKE_TAG_END;
-		output << currCode.getTextFragment();
+		output << this->getText();
+	}
+	else
+	{
+		for (KaraokeSwitchCode currCode : this->karaokeSwitchCodes)
+		{
+			output << KARAOKE_TAG_START << currCode.getDuration().getDurationCS() << KARAOKE_TAG_END;
+			output << currCode.getTextFragment();
+		}
 	}
 
 	return output.str();

@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Outputs
+*.ass
+
+# Test programs
+test.cpp
