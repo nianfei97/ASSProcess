@@ -111,12 +111,32 @@ void ASSTime::operator-=(ASSTime  toSubtract)
 
 bool ASSTime::operator==(ASSTime toCompare)
 {
-	return this->hour == toCompare.hour && this->min == toCompare.min && this->sec == toCompare.sec && this->cs == toCompare.cs;
+	return (*this <= toCompare) && (*this >= toCompare);
 }
 
 bool ASSTime::operator!=(ASSTime toCompare)
 {
 	return !(*this == toCompare);
+}
+
+bool ASSTime::operator<(ASSTime toCompare)
+{
+	return this->getDurationCS() < toCompare.getDurationCS();
+}
+
+bool ASSTime::operator>(ASSTime toCompare)
+{
+	return this->getDurationCS() > toCompare.getDurationCS();
+}
+
+bool ASSTime::operator<=(ASSTime toCompare)
+{
+	return !(*this > toCompare);
+}
+
+bool ASSTime::operator>=(ASSTime toCompare)
+{
+	return !(*this < toCompare);
 }
 
 void ASSTime::round()

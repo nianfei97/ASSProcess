@@ -15,6 +15,9 @@ ASSFile::ASSFile(std::string inFileName)
 {
 	std::ifstream fin(inFileName);
 
+	if (!fin.good())
+		throw "Input file not found!";
+
 	this->title = convertUnderscoreToSpace(inFileName);
 
 	readPreprocessLines(fin);
@@ -76,7 +79,7 @@ void ASSFile::processLyricLines(std::ifstream &fin)
 	}
 }
 
-void ASSFile::printFile(std::string outFileName)
+void ASSFile::printASSFile(std::string outFileName)
 {
 	std::ofstream fout(outFileName);
 
@@ -90,6 +93,16 @@ void ASSFile::printFile(std::string outFileName)
 int ASSFile::getNumLines()
 {
 	return lines.size();
+}
+
+void ASSFile::insertLine(ASSLine toInsert)
+{
+	this->lines.push_back(toInsert);
+}
+
+ASSFileWithSwitch::ASSFileWithSwitch() : ASSFile()
+{
+
 }
 
 ASSFileWithSwitch::ASSFileWithSwitch(std::string inFileName)
@@ -107,6 +120,28 @@ ASSFileWithSwitch::ASSFileWithSwitch(std::string inFileName)
 	}
 
 	fin.close();
+}
+
+void ASSFileWithSwitch::operator=(ASSFileWithSwitch input)
+{
+	this->lines = input.lines;
+	this->preprocess = input.preprocess;
+	this->title = input.title;
+}
+
+std::vector <ASSLineWithSwitch> ASSFileWithSwitch::getLines()
+{
+	return this->lines;
+}
+
+ASSLineWithSwitch ASSFileWithSwitch::getLine(int index)
+{
+	return this->lines[index];
+}
+
+void ASSFileWithSwitch::clearLines()
+{
+	this->lines.clear();
 }
 
 void ASSFileWithSwitch::processLyricLines(std::ifstream &fin)
@@ -164,7 +199,7 @@ void ASSFileWithSwitch::processLyricLines(std::ifstream &fin)
 	}
 }
 
-void ASSFileWithSwitch::printFile(std::string outFileName)
+void ASSFileWithSwitch::printASSFile(std::string outFileName)
 {
 	std::ofstream fout(outFileName);
 
@@ -178,4 +213,9 @@ void ASSFileWithSwitch::printFile(std::string outFileName)
 int ASSFileWithSwitch::getNumLines()
 {
 	return lines.size();
+}
+
+void ASSFileWithSwitch::insertLine(ASSLineWithSwitch toInsert)
+{
+	this->lines.push_back(toInsert);
 }

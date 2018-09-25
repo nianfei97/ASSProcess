@@ -27,8 +27,13 @@ public:
 	void operator+=(ASSTime toAdd);
 	ASSTime operator-(ASSTime toSubtract);
 	void operator-=(ASSTime toSubtract);
+	
 	bool operator==(ASSTime toCompare);
 	bool operator!=(ASSTime toCompare);
+	bool operator<(ASSTime toCompare);
+	bool operator>(ASSTime toCompare);
+	bool operator<=(ASSTime toCompare);
+	bool operator>=(ASSTime toCompare);
 
 	// Returns a string representation of the object
 	std::string printASSTime();

@@ -2,7 +2,6 @@
 #define __ASSLine__
 
 #include "ASSTime.h"
-#include "SwitchCodes.h"
 #include <string>
 #include <vector>
 
@@ -32,9 +31,7 @@ public:
 	ASSLine(std::string input);
 
 	// Operators
-	void operator= (ASSLine input);
-	ASSLine operator+ (ASSLine toAdd);
-	void operator+= (ASSLine toAdd);
+	void operator=(ASSLine input);
 
 	// Setters
 	void setStart(ASSTime toSet);
@@ -61,31 +58,9 @@ public:
 
 	// Removes all non-karaoke tags from the object's text field
 	void removeNonKaraokeTags();
-};
 
-class ASSLineWithSwitch : public ASSLine
-{
-private:	
-	std::vector <StyleSwitchCode> styleSwitchCodes;
-	std::vector <KaraokeSwitchCode> karaokeSwitchCodes;
-
-	ASSLineWithSwitch processSameStartTime (std::vector <ASSLine> &input);
-	ASSLineWithSwitch processSameEndTime (std::vector <ASSLine> &input);
-	ASSTime getAggregateSwitchDuration (int index);
-	std::vector <KaraokeSwitchCode> getKaraokeSwitchCodes (std::string input);
-	std::string printKaraokeLine();
-
-public:
-	// Constructors
-	ASSLineWithSwitch(std::string input);
-	ASSLineWithSwitch(ASSLine input);
-	ASSLineWithSwitch(std::vector <ASSLine> input);
-
-	// Operators
-	void operator=(ASSLineWithSwitch input);
-
-	// Returns a string representation of the object
-	std::string printASSLine();
+	// Offsets line by specified duration
+	void offsetASSLine(ASSTime duration);
 };
 
 #endif

@@ -7,9 +7,6 @@
 #define ONETIME_ZERO_STRING "0:00:00.00"
 #define DEFAULT_STYLE "Default"
 
-#define KARAOKE_TAG_START "{\\k"
-#define KARAOKE_TAG_END "}"
-
 #define DEFAULT_TAG "{\\fad(200,200)\\be11}"
 #define UP_TAG "{\\fad(200,200)\\be11\\an8}"
 #define TITLE_TAG "{\\fad(200,200)\\be11\\an7}"
@@ -104,24 +101,6 @@ void ASSLine::operator=(ASSLine input)
 	this->layer = input.layer;
 	this->isComment = input.isComment;
 	this->isUp = input.isUp;
-}
-
-ASSLine ASSLine::operator+(ASSLine toAdd)
-{
-	ASSLine sum;
-
-	sum.start = this->start;
-	sum.end = toAdd.end;
-	sum.text = this->text + ' ' + toAdd.text;
-	sum.style = this->style;
-	sum.layer = this->layer;
-
-	return sum;
-}
-
-void ASSLine::operator+=(ASSLine toAdd)
-{
-	*this = *this + toAdd;
 }
 
 int ASSLine::getLayer()
@@ -273,184 +252,8 @@ void ASSLine::removeNonKaraokeTags()
 	this->text = removeNonKaraokeTags(this->text);
 }
 
-ASSLineWithSwitch::ASSLineWithSwitch(std::string input) : ASSLine(input)
+void ASSLine::offsetASSLine(ASSTime duration)
 {
-	StyleSwitchCode currStyleSwitchCode(this->getDuration(), this->getStyle());
-	this->styleSwitchCodes.push_back(currStyleSwitchCode);
-
-	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
-	this->text = removeAllTags(this->text);
-}
-
-ASSLineWithSwitch::ASSLineWithSwitch(ASSLine input)
-{
-	this->ASSLine::operator=(input);
-	
-	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
-	this->text = removeAllTags(this->text);
-}
-
-ASSLineWithSwitch::ASSLineWithSwitch(std::vector <ASSLine> input)
-{
-	std::string lineText = input[0].getText();
-	ASSTime startTime = input[0].getStart();
-	ASSTime endTime = input[0].getEnd();
-
-	for (ASSLine line : input)
-		if (line.getText() != lineText)
-			throw "Lines contain different text fields!";
-
-	bool hasSameStartTime = true;
-	bool hasSameEndTime = true;
-
-	for (ASSLine line : input)
-	{
-		if (line.getStart() != startTime) hasSameStartTime = false;
-		if (line.getEnd() != endTime) hasSameEndTime = false;
-	}
-
-	if (hasSameStartTime)
-	{
-		ASSLineWithSwitch result = processSameStartTime(input);
-		*this = result;
-	}
-	else if (hasSameEndTime)
-	{
-		ASSLineWithSwitch result = processSameEndTime(input);
-		*this = result;
-	}
-	else throw "Unrecognised timing format!";
-}
-
-void ASSLineWithSwitch::operator=(ASSLineWithSwitch input)
-{
-	this->ASSLine::operator=(input);
-	this->styleSwitchCodes = input.styleSwitchCodes;
-	this->karaokeSwitchCodes = input.karaokeSwitchCodes;
-}
-
-ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime (std::vector <ASSLine> &input)
-{
-	ASSLineWithSwitch result = ASSLineWithSwitch(*input.rbegin());
-
-	for (int i = 0; i < input.size(); i++)
-	{
-		ASSTime switchDuration;
-		std::string switchStyle;
-
-		if (i == 0) switchDuration = input[i].getDuration();
-		else if (i > 0) switchDuration = input[i].getDuration() - input[i - 1].getDuration();
-
-		switchStyle = input[i].getStyle();
-
-		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
-
-		result.styleSwitchCodes.push_back(toPush);
-	}
-
-	return result;
-}
-
-ASSLineWithSwitch ASSLineWithSwitch::processSameEndTime (std::vector <ASSLine> &input)
-{
-	ASSLineWithSwitch result = ASSLineWithSwitch(*input.begin());
-
-	for (int i = 0; i < input.size(); i++)
-	{
-		ASSTime switchDuration;
-		std::string switchStyle;
-
-		if (i < input.size() - 1) switchDuration = input[i].getDuration() - input[i + 1].getDuration();
-		else if (i == input.size() - 1) switchDuration = input[i].getDuration();
-		
-		switchStyle = input[i].getStyle();
-
-		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
-
-		result.styleSwitchCodes.push_back(toPush);
-	}
-
-	return result;
-}
-
-ASSTime ASSLineWithSwitch::getAggregateSwitchDuration (int index)
-{
-	ASSTime result;
-
-	for (int i = 0; i <= index; i++)
-		result += this->styleSwitchCodes[i].getDuration();
-
-	return result;
-}
-
-std::string ASSLineWithSwitch::printASSLine()
-{
-	std::ostringstream sout;
-
-	for (int i = 0; i < this->styleSwitchCodes.size(); i++)
-	{
-		ASSLine toPrint = *this;
-		toPrint.setEnd(toPrint.getStart() + this->getAggregateSwitchDuration(i));
-		toPrint.setStyle(this->styleSwitchCodes[i].getStyle());
-		toPrint.setLayer(styleSwitchCodes.size() - i - 1);
-		toPrint.setText(this->printKaraokeLine());
-
-		sout << toPrint.printASSLine();
-	}
-
-	return sout.str();
-}
-
-std::vector <KaraokeSwitchCode> ASSLineWithSwitch::getKaraokeSwitchCodes (std::string input)
-{
-	std::vector <KaraokeSwitchCode> output;
-
-	std::istringstream iss(this->removeNonKaraokeTags(input));
-
-	while (!iss.eof())
-	{
-		char currChar = iss.get();
-
-		if (currChar == '{')
-		{
-			iss.get();
-			iss.get();
-
-			int currDurationInt;
-			iss >> currDurationInt;
-
-			ASSTime currDuration(currDurationInt);
-
-			iss.get();
-
-			char* currTextFragment;
-
-			iss.get(currTextFragment, input.size(), '{');
-
-			KaraokeSwitchCode currSwitchCode(currDuration, currTextFragment);
-			output.push_back(currSwitchCode);
-		}
-	}
-
-	return output;
-}
-
-std::string ASSLineWithSwitch::printKaraokeLine()
-{
-	std::ostringstream output;
-
-	if (this->karaokeSwitchCodes.empty())
-	{
-		output << this->getText();
-	}
-	else
-	{
-		for (KaraokeSwitchCode currCode : this->karaokeSwitchCodes)
-		{
-			output << KARAOKE_TAG_START << currCode.getDuration().getDurationCS() << KARAOKE_TAG_END;
-			output << currCode.getTextFragment();
-		}
-	}
-
-	return output.str();
+	this->start += duration;
+	this->end += duration;
 }

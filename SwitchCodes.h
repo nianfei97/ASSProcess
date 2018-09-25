@@ -15,6 +15,7 @@ public:
 	StyleSwitchCode(ASSTime duration, std::string style);
 
 	ASSTime getDuration();
+	void setDuration(ASSTime toSet);
 	std::string getStyle();
 };
 
@@ -29,6 +30,7 @@ public:
 	KaraokeSwitchCode(ASSTime duration, std::string textFragment);
 
 	ASSTime getDuration();
+	void setDuration(ASSTime toSet);
 	std::string getTextFragment();
 };
 
