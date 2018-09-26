@@ -16,6 +16,7 @@ public:
 
 	ASSTime getDuration();
 	void setDuration(ASSTime toSet);
+	void setStyle(std::string toSet);
 	std::string getStyle();
 };
 

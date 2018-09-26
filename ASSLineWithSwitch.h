@@ -15,14 +15,17 @@ private:
 
 	std::vector <KaraokeSwitchCode> getKaraokeSwitchCodes(std::string input);
 
+	void createDefaultStyleSwitchCode();
+	void createDefaultKaraokeSwitchCode();
+
 	ASSLineWithSwitch processSameStartTime(std::vector <ASSLine> &input);
 	ASSLineWithSwitch processSameEndTime(std::vector <ASSLine> &input);
 
 	void fixDurationFromStart();
 	void fixDurationFromEnd();
 
-	ASSTime getAggregateStyleSwitchDuration(int index);
-	ASSTime getAggregateKaraokeSwitchDuration(int index);
+	ASSTime getAggregateStyleSwitchDuration(int start, int end);
+	ASSTime getAggregateKaraokeSwitchDuration(int start, int end);
 
 	std::string printKaraokeLine();
 
@@ -39,6 +42,14 @@ public:
 	// Setters
 	void setStart(ASSTime toSet);
 	void setEnd(ASSTime toSet);
+	void setStyle(std::string toSet);
+	void setStyleSwitchCodes(std::vector <StyleSwitchCode> toSet);
+
+	// Getters
+	std::vector <StyleSwitchCode> getStyleSwitchCodes();
+
+	void clearStyleSwitch();
+	void clearKaraokeSwitch();
 
 	// Returns a string representation of the object
 	std::string printASSLine();

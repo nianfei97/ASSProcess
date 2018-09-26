@@ -29,6 +29,11 @@ void StyleSwitchCode::setDuration(ASSTime toSet)
 	this->duration = toSet;
 }
 
+void StyleSwitchCode::setStyle(std::string toSet)
+{
+	this->style = toSet;
+}
+
 KaraokeSwitchCode::KaraokeSwitchCode()
 {
 

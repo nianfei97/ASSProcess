@@ -26,10 +26,14 @@ protected:
 	void processLyricLines(std::ifstream &fin);
 
 public:
+	void readPreprocessLines(std::string inFileName);
+
 	void removeAllTags();
 	void removeNonKaraokeTags();
 	void printASSFile(std::string outFileName);
+
 	int getNumLines();
+	ASSTime getEndTime();
 
 	void insertLine(ASSLine toInsert);
 };
@@ -52,7 +56,10 @@ public:
 	void clearLines();
 
 	void printASSFile(std::string outFileName);
+	
 	int getNumLines();
+	ASSTime getEndTime();
+
 	void insertLine(ASSLineWithSwitch toInsert);
 };
 

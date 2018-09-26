@@ -5,6 +5,7 @@
 #include <iostream>
 
 #define ONETIME_ZERO_STRING "0:00:00.00"
+#define ONETIME_FIVE_STRING "0:00:05.00"
 #define DEFAULT_STYLE "Default"
 
 #define DEFAULT_TAG "{\\fad(200,200)\\be11}"
@@ -15,7 +16,7 @@
 ASSLine::ASSLine()
 {
 	this->start = ONETIME_ZERO_STRING;
-	this->end = ONETIME_ZERO_STRING;
+	this->end = ONETIME_FIVE_STRING;
 	this->text = "";
 	this->style = DEFAULT_STYLE;
 	this->actor = "";
@@ -24,9 +25,9 @@ ASSLine::ASSLine()
 	this->verticalMargin = 0;
 	this->effect = "";
 	this->layer = 0;
-	this->isComment = false;
-	this->isUp = false;
-	this->isDialogue = false;
+	this->iscomment = false;
+	this->isup = false;
+	this->isdialogue = false;
 }
 
 ASSLine::ASSLine(std::string input) : ASSLine()
@@ -35,7 +36,7 @@ ASSLine::ASSLine(std::string input) : ASSLine()
 
 	std::string formatString;
 	getline(iss, formatString, ' ');
-	if (formatString == "Comment:") this->isDialogue = true;
+	if (formatString == "Comment:") this->iscomment = true;
 
 	std::string layerString;
 	getline(iss, layerString, ',');
@@ -78,11 +79,9 @@ ASSLine::ASSLine(std::string input) : ASSLine()
 	while (textString.back() == ' ') textString.pop_back();
 	this->text = textString;
 
-	this->isComment = false;
-
 	if (styleString[0] == 'U') 
 	{
-		this->isUp = true;
+		this->isup = true;
 		this->style = this->style.substr(1, this->style.length() - 1);
 	}
 }
@@ -99,8 +98,9 @@ void ASSLine::operator=(ASSLine input)
 	this->verticalMargin = input.verticalMargin;
 	this->effect = input.effect;
 	this->layer = input.layer;
-	this->isComment = input.isComment;
-	this->isUp = input.isUp;
+	this->iscomment = input.isComment();
+	this->isup = input.isUp();
+	this->isdialogue = input.isDialogue();
 }
 
 int ASSLine::getLayer()
@@ -128,6 +128,21 @@ std::string ASSLine::getStyle()
 	return this->style;
 }
 
+bool ASSLine::isComment()
+{
+	return this->iscomment;
+}
+
+bool ASSLine::isUp()
+{
+	return this->isup;
+}
+
+bool ASSLine::isDialogue()
+{
+	return this->isdialogue;
+}
+
 void ASSLine::setStart(ASSTime toSet)
 {
 	this->start = toSet;
@@ -153,6 +168,36 @@ void ASSLine::setLayer(int toSet)
 	this->layer = toSet;
 }
 
+void ASSLine::setComment()
+{
+	this->iscomment = true;
+}
+
+void ASSLine::unsetComment()
+{
+	this->iscomment = false;
+}
+
+void ASSLine::setUp()
+{
+	this->isup = true;
+}
+
+void ASSLine::unsetUp()
+{
+	this->isup = false;
+}
+
+void ASSLine::setDialogue()
+{
+	this->isdialogue = true;
+}
+
+void ASSLine::unsetDialogue()
+{
+	this->isdialogue = false;
+}
+
 ASSTime ASSLine::getDuration()
 {
 	return this->end - this->start;
@@ -162,7 +207,7 @@ std::string ASSLine::printASSLine()
 {
 	std::ostringstream sout;
 
-	if (this->isComment) sout << "Comment: ";
+	if (this->isComment()) sout << "Comment: ";
 	else sout << "Dialogue: ";
 
 	sout << this->layer << ',';
@@ -175,11 +220,11 @@ std::string ASSLine::printASSLine()
 	sout << this->verticalMargin << ',';
 	sout << this->effect << ',';
 
-	if (!this->isComment)
+	if (!this->isComment())
 	{
-		if (this->isUp) sout << UP_TAG;
+		if (this->isUp()) sout << UP_TAG;
 		else if (this->style == "Title") sout << TITLE_TAG;
-		else if (this->isDialogue) sout << DIALOGUE_TAG;
+		else if (this->isDialogue()) sout << DIALOGUE_TAG;
 		else sout << DEFAULT_TAG;
 	}
 

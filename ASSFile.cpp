@@ -41,6 +41,8 @@ std::string ASSFile::convertUnderscoreToSpace(std::string input)
 
 void ASSFile::readPreprocessLines(std::ifstream &fin)
 {
+	this->preprocess.clear();
+
 	std::string currLine;
 
 	while (1)
@@ -50,6 +52,16 @@ void ASSFile::readPreprocessLines(std::ifstream &fin)
 
 		if (currLine == PREPROCESS_STOP_READ_LINE) break;
 	}
+}
+
+void ASSFile::readPreprocessLines(std::string inFileName)
+{
+	std::ifstream fin(inFileName);
+
+	if (!fin.good())
+		throw "Cannot find style file!";
+
+	readPreprocessLines(fin);
 }
 
 void ASSFile::removeAllTags()
@@ -93,6 +105,11 @@ void ASSFile::printASSFile(std::string outFileName)
 int ASSFile::getNumLines()
 {
 	return lines.size();
+}
+
+ASSTime ASSFile::getEndTime()
+{
+	return lines.rbegin()->getEnd();
 }
 
 void ASSFile::insertLine(ASSLine toInsert)
@@ -213,6 +230,11 @@ void ASSFileWithSwitch::printASSFile(std::string outFileName)
 int ASSFileWithSwitch::getNumLines()
 {
 	return lines.size();
+}
+
+ASSTime ASSFileWithSwitch::getEndTime()
+{
+	return lines.rbegin()->getEnd();
 }
 
 void ASSFileWithSwitch::insertLine(ASSLineWithSwitch toInsert)

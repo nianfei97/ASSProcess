@@ -10,13 +10,13 @@
 
 ASSLineWithSwitch::ASSLineWithSwitch() : ASSLine()
 {
-
+	this->createDefaultStyleSwitchCode();
+	this->createDefaultKaraokeSwitchCode();
 }
 
 ASSLineWithSwitch::ASSLineWithSwitch(std::string input) : ASSLine(input)
 {
-	StyleSwitchCode currStyleSwitchCode(this->getDuration(), this->getStyle());
-	this->styleSwitchCodes.push_back(currStyleSwitchCode);
+	this->createDefaultStyleSwitchCode();
 
 	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
 	this->text = removeAllTags(this->text);
@@ -25,7 +25,8 @@ ASSLineWithSwitch::ASSLineWithSwitch(std::string input) : ASSLine(input)
 ASSLineWithSwitch::ASSLineWithSwitch(ASSLine input)
 {
 	this->ASSLine::operator=(input);
-	
+	this->createDefaultStyleSwitchCode();
+
 	this->karaokeSwitchCodes = getKaraokeSwitchCodes(this->text);
 	this->text = removeAllTags(this->text);
 }
@@ -69,6 +70,18 @@ void ASSLineWithSwitch::operator=(ASSLineWithSwitch input)
 	this->karaokeSwitchCodes = input.karaokeSwitchCodes;
 }
 
+void ASSLineWithSwitch::createDefaultStyleSwitchCode()
+{
+	this->styleSwitchCodes.clear();
+	StyleSwitchCode currStyleSwitchCode(this->getDuration(), this->getStyle());
+	this->styleSwitchCodes.push_back(currStyleSwitchCode);
+}
+
+void ASSLineWithSwitch::createDefaultKaraokeSwitchCode()
+{
+	this->karaokeSwitchCodes.clear();
+}
+
 void ASSLineWithSwitch::setStart(ASSTime toSet)
 {
 	this->ASSLine::setStart(toSet);
@@ -77,32 +90,32 @@ void ASSLineWithSwitch::setStart(ASSTime toSet)
 
 void ASSLineWithSwitch::fixDurationFromStart()
 {
-	while (this->getDuration() > this->getAggregateStyleSwitchDuration(this->styleSwitchCodes.size() - 1) && this->styleSwitchCodes.size() > 1)
+	while (this->styleSwitchCodes.size() > 1 && this->getDuration() < this->getAggregateStyleSwitchDuration(0, this->styleSwitchCodes.size() - 1))
 	{
 		this->styleSwitchCodes.erase(this->styleSwitchCodes.begin());
 	}
 
 	if (this->styleSwitchCodes.size() > 1)
 	{
-		this->styleSwitchCodes.begin()->setDuration(this->getDuration() - (this->getAggregateStyleSwitchDuration(this->styleSwitchCodes.size() - 1) - this->getAggregateStyleSwitchDuration(0)));
+		this->styleSwitchCodes.begin()->setDuration(this->getDuration() - this->getAggregateStyleSwitchDuration(1, this->styleSwitchCodes.size() - 1));
 	}
 	else
 	{
-		this->styleSwitchCodes.begin()->setDuration(this->getDuration());
+		this->createDefaultStyleSwitchCode();
 	}
 
-	while (this->getDuration() > this->getAggregateKaraokeSwitchDuration(this->karaokeSwitchCodes.size() - 1) && this->karaokeSwitchCodes.size() > 0)
+	while (this->getDuration() > this->getAggregateKaraokeSwitchDuration(0, this->karaokeSwitchCodes.size() - 1) && this->karaokeSwitchCodes.size() > 0)
 	{
 		this->karaokeSwitchCodes.erase(this->karaokeSwitchCodes.begin());
 	}
 
 	if (this->karaokeSwitchCodes.size() > 1)
 	{
-		this->karaokeSwitchCodes.begin()->setDuration(this->getDuration() - (this->getAggregateKaraokeSwitchDuration(this->karaokeSwitchCodes.size() - 1) - this->getAggregateKaraokeSwitchDuration(0)));
+		this->karaokeSwitchCodes.begin()->setDuration(this->getDuration() - this->getAggregateKaraokeSwitchDuration(1, this->karaokeSwitchCodes.size() - 1));
 	}
 	else
 	{
-		this->karaokeSwitchCodes.clear();
+		this->createDefaultKaraokeSwitchCode();
 	}
 }
 
@@ -114,52 +127,77 @@ void ASSLineWithSwitch::setEnd(ASSTime toSet)
 
 void ASSLineWithSwitch::fixDurationFromEnd()
 {
-	while (this->styleSwitchCodes.size() > 1 && this->getDuration() > this->getAggregateStyleSwitchDuration(this->styleSwitchCodes.size() - 1))
+	while (this->styleSwitchCodes.size() > 1 && this->getDuration() < this->getAggregateStyleSwitchDuration(0, this->styleSwitchCodes.size() - 1))
 	{
 		this->styleSwitchCodes.pop_back();
 	}
 
 	if (this->styleSwitchCodes.size() > 1)
 	{
-		this->styleSwitchCodes.rbegin()->setDuration(this->getDuration() - this->getAggregateStyleSwitchDuration(this->styleSwitchCodes.size() - 2));
+		this->styleSwitchCodes.rbegin()->setDuration(this->getDuration() - this->getAggregateStyleSwitchDuration(0, this->styleSwitchCodes.size() - 2));
 	}
 	else
 	{
-		this->styleSwitchCodes.rbegin()->setDuration(this->getDuration());
+		this->createDefaultStyleSwitchCode();
 	}
 
-	while (this->karaokeSwitchCodes.size() > 1 && this->getDuration() > this->getAggregateKaraokeSwitchDuration(this->karaokeSwitchCodes.size() - 1))
+	while (this->karaokeSwitchCodes.size() > 1 && this->getDuration() < this->getAggregateKaraokeSwitchDuration(0, this->karaokeSwitchCodes.size() - 1))
 	{
 		this->karaokeSwitchCodes.pop_back();
 	}
 
 	if (this->karaokeSwitchCodes.size() > 1)
 	{
-		this->karaokeSwitchCodes.rbegin()->setDuration(this->getDuration() - this->getAggregateKaraokeSwitchDuration(this->karaokeSwitchCodes.size() - 2));
+		this->karaokeSwitchCodes.rbegin()->setDuration(this->getDuration() - this->getAggregateKaraokeSwitchDuration(0, this->karaokeSwitchCodes.size() - 2));
 	}
 	else
 	{
-		this->karaokeSwitchCodes.clear();
+		this->createDefaultKaraokeSwitchCode();
 	}
+}
+
+void ASSLineWithSwitch::setStyle(std::string toSet)
+{
+	this->ASSLine::setStyle(toSet);
+
+	this->styleSwitchCodes.begin()->setStyle(toSet);
+}
+
+void ASSLineWithSwitch::setStyleSwitchCodes(std::vector <StyleSwitchCode> toSet)
+{
+	this->styleSwitchCodes = toSet;
+}
+
+std::vector <StyleSwitchCode> ASSLineWithSwitch::getStyleSwitchCodes()
+{
+	return this->styleSwitchCodes;
 }
 
 ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime(std::vector <ASSLine> &input)
 {
 	ASSLineWithSwitch result = ASSLineWithSwitch(*input.rbegin());
+	result.styleSwitchCodes.clear();
 
-	for (int i = 0; i < input.size(); i++)
+	if (input.size() == 1)
 	{
-		ASSTime switchDuration;
-		std::string switchStyle;
+		result.createDefaultStyleSwitchCode();
+	}
+	else
+	{
+		for (int i = 0; i < input.size(); i++)
+		{
+			ASSTime switchDuration;
+			std::string switchStyle;
 
-		if (i == 0) switchDuration = input[i].getDuration();
-		else if (i > 0) switchDuration = input[i].getDuration() - input[i - 1].getDuration();
+			if (i == 0) switchDuration = input[i].getDuration();
+			else if (i > 0) switchDuration = input[i].getDuration() - input[i - 1].getDuration();
 
-		switchStyle = input[i].getStyle();
+			switchStyle = input[i].getStyle();
 
-		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
+			StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
 
-		result.styleSwitchCodes.push_back(toPush);
+			result.styleSwitchCodes.push_back(toPush);
+		}
 	}
 
 	return result;
@@ -168,40 +206,48 @@ ASSLineWithSwitch ASSLineWithSwitch::processSameStartTime(std::vector <ASSLine> 
 ASSLineWithSwitch ASSLineWithSwitch::processSameEndTime(std::vector <ASSLine> &input)
 {
 	ASSLineWithSwitch result = ASSLineWithSwitch(*input.begin());
+	result.styleSwitchCodes.clear();
 
-	for (int i = 0; i < input.size(); i++)
+	if (input.size() == 1)
 	{
-		ASSTime switchDuration;
-		std::string switchStyle;
+		result.createDefaultStyleSwitchCode();
+	}
+	else
+	{
+		for (int i = 0; i < input.size(); i++)
+		{
+			ASSTime switchDuration;
+			std::string switchStyle;
 
-		if (i < input.size() - 1) switchDuration = input[i].getDuration() - input[i + 1].getDuration();
-		else if (i == input.size() - 1) switchDuration = input[i].getDuration();
-		
-		switchStyle = input[i].getStyle();
+			if (i < input.size() - 1) switchDuration = input[i].getDuration() - input[i + 1].getDuration();
+			else if (i == input.size() - 1) switchDuration = input[i].getDuration();
+			
+			switchStyle = input[i].getStyle();
 
-		StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
+			StyleSwitchCode toPush = StyleSwitchCode(switchDuration, switchStyle);
 
-		result.styleSwitchCodes.push_back(toPush);
+			result.styleSwitchCodes.push_back(toPush);
+		}
 	}
 
 	return result;
 }
 
-ASSTime ASSLineWithSwitch::getAggregateStyleSwitchDuration(int index)
+ASSTime ASSLineWithSwitch::getAggregateStyleSwitchDuration(int start, int end)
 {
 	ASSTime result;
 
-	for (int i = 0; i <= index; i++)
+	for (int i = start; i <= end; i++)
 		result += this->styleSwitchCodes[i].getDuration();
 
 	return result;
 }
 
-ASSTime ASSLineWithSwitch::getAggregateKaraokeSwitchDuration(int index)
+ASSTime ASSLineWithSwitch::getAggregateKaraokeSwitchDuration(int start, int end)
 {
 	ASSTime result;
 
-	for (int i = 0; i <= index; i++)
+	for (int i = start; i <= end; i++)
 		result += this->karaokeSwitchCodes[i].getDuration();
 
 	return result;
@@ -214,7 +260,7 @@ std::string ASSLineWithSwitch::printASSLine()
 	for (int i = 0; i < this->styleSwitchCodes.size(); i++)
 	{
 		ASSLine toPrint = *this;
-		toPrint.setEnd(toPrint.getStart() + this->getAggregateStyleSwitchDuration(i));
+		toPrint.setEnd(toPrint.getStart() + this->getAggregateStyleSwitchDuration(0, i));
 		toPrint.setStyle(this->styleSwitchCodes[i].getStyle());
 		toPrint.setLayer(styleSwitchCodes.size() - i - 1);
 		toPrint.setText(this->printKaraokeLine());
@@ -247,7 +293,7 @@ std::vector <KaraokeSwitchCode> ASSLineWithSwitch::getKaraokeSwitchCodes(std::st
 
 			iss.get();
 
-			char* currTextFragment;
+			char currTextFragment[input.size()];
 
 			iss.get(currTextFragment, input.size(), '{');
 
@@ -283,6 +329,9 @@ ASSLineWithSwitch ASSLineWithSwitch::mergeStyles(ASSLineWithSwitch toMerge)
 {
 	ASSLineWithSwitch output = *this;
 
+	if (toMerge.isComment())
+		output.setComment();
+
 	output.setStyle(toMerge.getStyle());
 	output.styleSwitchCodes.clear();
 
@@ -297,7 +346,7 @@ ASSLineWithSwitch ASSLineWithSwitch::mergeStyles(ASSLineWithSwitch toMerge)
 
 				for (int j = 0; j < output.karaokeSwitchCodes.size(); j++)
 				{
-					int currDiff = abs(output.getAggregateKaraokeSwitchDuration(j).getDurationCS() - toMerge.getAggregateStyleSwitchDuration(i).getDurationCS());
+					int currDiff = abs(output.getAggregateKaraokeSwitchDuration(0, j).getDurationCS() - toMerge.getAggregateStyleSwitchDuration(0, i).getDurationCS());
 
 					if (currDiff < closestDiff)
 					{
@@ -338,11 +387,11 @@ ASSLineWithSwitch ASSLineWithSwitch::mergeStyles(ASSLineWithSwitch toMerge)
 				ASSTime switchStyleDuration;
 
 				if (i == 0)
-					switchStyleDuration = output.getAggregateKaraokeSwitchDuration(closestIndex);
+					switchStyleDuration = output.getAggregateKaraokeSwitchDuration(0, closestIndex);
 				else if (i == toMerge.styleSwitchCodes.size() - 1)
-					switchStyleDuration = output.getDuration() - output.getAggregateStyleSwitchDuration(i - 1);
+					switchStyleDuration = output.getDuration() - output.getAggregateStyleSwitchDuration(0, i - 1);
 				else
-					switchStyleDuration = output.getAggregateKaraokeSwitchDuration(closestIndex) - output.getAggregateStyleSwitchDuration(i - 1);
+					switchStyleDuration = output.getAggregateKaraokeSwitchDuration(0, closestIndex) - output.getAggregateStyleSwitchDuration(0, i - 1);
 
 				StyleSwitchCode result(switchStyleDuration, toMerge.styleSwitchCodes[i].getStyle());
 				output.styleSwitchCodes.push_back(result);
@@ -350,10 +399,19 @@ ASSLineWithSwitch ASSLineWithSwitch::mergeStyles(ASSLineWithSwitch toMerge)
 		}
 		else
 		{
-			StyleSwitchCode result(output.getDuration(), toMerge.styleSwitchCodes[0].getStyle());
-			output.styleSwitchCodes.push_back(result);
+			output.createDefaultStyleSwitchCode();
 		}
 	}
 
 	return output;
+}
+
+void ASSLineWithSwitch::clearStyleSwitch()
+{
+	this->createDefaultStyleSwitchCode();
+}
+
+void ASSLineWithSwitch::clearKaraokeSwitch()
+{
+	this->createDefaultKaraokeSwitchCode();
 }

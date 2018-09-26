@@ -18,9 +18,9 @@ protected:
 	int verticalMargin;
 	std::string effect;
 	int layer;
-	bool isComment;
-	bool isUp;
-	bool isDialogue;
+	bool iscomment;
+	bool isup;
+	bool isdialogue;
 
 	std::string removeAllTags(std::string input);
 	std::string removeNonKaraokeTags(std::string input);
@@ -39,6 +39,12 @@ public:
 	void setText(std::string toSet);
 	void setStyle(std::string toSet);
 	void setLayer(int toSet);
+	void setComment();
+	void unsetComment();
+	void setUp();
+	void unsetUp();
+	void setDialogue();
+	void unsetDialogue();
 
 	// Getters
 	ASSTime getStart();
@@ -46,6 +52,9 @@ public:
 	std::string getText();
 	std::string getStyle();
 	int getLayer();
+	bool isComment();
+	bool isUp();
+	bool isDialogue();
 
 	// Returns the duration of the object
 	ASSTime getDuration();
