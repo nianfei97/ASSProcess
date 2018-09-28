@@ -29,6 +29,8 @@ ENLyricFile::ENLyricFile(std::string inFile)
 		this->lines.push_back(currLine);
 	}
 
+	while (*(this->lines.rbegin()) == "") this->lines.pop_back();
+
 	fin.close();
 }
 

@@ -159,7 +159,6 @@ void ASSLineWithSwitch::fixDurationFromEnd()
 void ASSLineWithSwitch::setStyle(std::string toSet)
 {
 	this->ASSLine::setStyle(toSet);
-
 	this->styleSwitchCodes.begin()->setStyle(toSet);
 }
 
@@ -402,6 +401,10 @@ ASSLineWithSwitch ASSLineWithSwitch::mergeStyles(ASSLineWithSwitch toMerge)
 			output.createDefaultStyleSwitchCode();
 		}
 	}
+	else
+	{
+		output.createDefaultStyleSwitchCode();
+	}
 
 	return output;
 }
@@ -414,4 +417,10 @@ void ASSLineWithSwitch::clearStyleSwitch()
 void ASSLineWithSwitch::clearKaraokeSwitch()
 {
 	this->createDefaultKaraokeSwitchCode();
+}
+
+void ASSLineWithSwitch::offsetLine(ASSTime offset)
+{
+	this->start += offset;
+	this->end += offset;
 }

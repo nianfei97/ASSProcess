@@ -51,6 +51,8 @@ public:
 	void clearStyleSwitch();
 	void clearKaraokeSwitch();
 
+	void offsetLine(ASSTime offset);
+
 	// Returns a string representation of the object
 	std::string printASSLine();
 

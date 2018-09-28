@@ -78,12 +78,6 @@ ASSLine::ASSLine(std::string input) : ASSLine()
 	getline(iss, textString);
 	while (textString.back() == ' ') textString.pop_back();
 	this->text = textString;
-
-	if (styleString[0] == 'U') 
-	{
-		this->isup = true;
-		this->style = this->style.substr(1, this->style.length() - 1);
-	}
 }
 
 void ASSLine::operator=(ASSLine input)

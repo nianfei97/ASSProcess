@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <utility>
 
 #define PREPROCESS_STOP_READ_LINE "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
 
@@ -24,6 +25,8 @@ ASSFile::ASSFile(std::string inFileName)
 	processLyricLines(fin);
 
 	fin.close();
+
+	while (this->lines.rbegin()->getText() == "") this->lines.pop_back();
 }
 
 std::string ASSFile::convertUnderscoreToSpace(std::string input)
@@ -126,6 +129,9 @@ ASSFileWithSwitch::ASSFileWithSwitch(std::string inFileName)
 {
 	std::ifstream fin(inFileName);
 
+	if (!fin.good())
+		throw "File not found!";
+
 	try
 	{
 		readPreprocessLines(fin);
@@ -137,6 +143,8 @@ ASSFileWithSwitch::ASSFileWithSwitch(std::string inFileName)
 	}
 
 	fin.close();
+
+	while (this->lines.rbegin()->getText() == "") this->lines.pop_back();
 }
 
 void ASSFileWithSwitch::operator=(ASSFileWithSwitch input)
@@ -191,7 +199,7 @@ void ASSFileWithSwitch::processLyricLines(std::ifstream &fin)
 
 		ASSLine currLine(currLineString);
 		
-		if (currLines.empty() || currLines.rbegin()->getText() == currLine.getText())
+		if (currLines.empty() || (currLines.rbegin()->getText() == currLine.getText() && currLine.getLayer() != currLines.rbegin()->getLayer()))
 		{
 			currLines.push_back(currLine);
 		}
@@ -232,12 +240,44 @@ int ASSFileWithSwitch::getNumLines()
 	return lines.size();
 }
 
+ASSTime ASSFileWithSwitch::getStartTime()
+{
+	return lines.begin()->getStart();
+}
+
 ASSTime ASSFileWithSwitch::getEndTime()
 {
 	return lines.rbegin()->getEnd();
 }
 
+void ASSFileWithSwitch::setLine(ASSLineWithSwitch toSet, int index)
+{
+	this->lines[index] = toSet;
+}
+
 void ASSFileWithSwitch::insertLine(ASSLineWithSwitch toInsert)
 {
 	this->lines.push_back(toInsert);
+}
+
+void ASSFileWithSwitch::deleteLine(int index)
+{
+	this->lines.erase(this->lines.begin() + index);
+}
+
+void ASSFileWithSwitch::swapLines(int index1, int index2)
+{
+	std::swap(lines[index1], lines[index2]);
+}
+
+void ASSFileWithSwitch::appendFile(ASSFileWithSwitch toAppend)
+{
+	for (ASSLineWithSwitch currLine : toAppend.getLines())
+		this->lines.push_back(currLine);
+}
+
+void ASSFileWithSwitch::offsetFile(ASSTime offset)
+{
+	for (ASSLineWithSwitch& currLine : this->lines)
+		currLine.offsetLine(offset);
 }

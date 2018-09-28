@@ -53,14 +53,20 @@ public:
 
 	std::vector <ASSLineWithSwitch> getLines();
 	ASSLineWithSwitch getLine(int index);
-	void clearLines();
-
-	void printASSFile(std::string outFileName);
-	
 	int getNumLines();
+	ASSTime getStartTime();
 	ASSTime getEndTime();
 
+	void setLine(ASSLineWithSwitch toSet, int index);
 	void insertLine(ASSLineWithSwitch toInsert);
+	void deleteLine(int index);
+	void clearLines();
+	void swapLines(int index1, int index2);
+
+	void appendFile(ASSFileWithSwitch toAppend);
+	void offsetFile(ASSTime offset);
+
+	void printASSFile(std::string outFileName);
 };
 
 #endif
